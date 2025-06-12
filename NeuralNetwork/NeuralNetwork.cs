@@ -8,7 +8,7 @@ public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLay
 
     public double[] GetCurrentOutputs(double[] inputs)
     {
-        var currentInputs = inputs.ToList();
+        var previousLayerOutputs = inputs.ToList();
 
         for (var i = 0; i < _hiddenLayers.Length; i++)
         {
@@ -16,13 +16,13 @@ public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLay
 
             for (var j = 0; j < _hiddenLayers[i].Length; j++)
             {
-                hiddenLayerOutputs[j] = _hiddenLayers[i][j].ActivateAndGetOutput(currentInputs.ToArray());
+                hiddenLayerOutputs[j] = _hiddenLayers[i][j].ActivateAndGetOutput(previousLayerOutputs.ToArray());
             }
 
-            currentInputs = hiddenLayerOutputs.ToList();
+            previousLayerOutputs = hiddenLayerOutputs.ToList();
         }
 
-        return _outputLayer.Select(x => x.ActivateAndGetOutput(currentInputs.ToArray())).ToArray();
+        return _outputLayer.Select(x => x.ActivateAndGetOutput(previousLayerOutputs.ToArray())).ToArray();
     }
 
     public double Train(double[] inputs, double[] expectedOutputs)
@@ -37,21 +37,21 @@ public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLay
             _outputLayer[i].SetDelta(error);
         }
 
-        var previousLayer = _outputLayer;
+        var nextLayer = _outputLayer;
 
         for (var i = _hiddenLayers.Length - 1; i >= 0; i--)
         {
             for (var j = 0; j < _hiddenLayers[i].Length; j++)
             {
-                var error = previousLayer.Aggregate(0d, (current, next) => current + next.Delta!.Value * next.Weights[i]);
+                var error = nextLayer.Aggregate(0d, (current, next) => current + next.Delta!.Value * next.Weights[i]);
                 
                 _hiddenLayers[i][j].SetDelta(error);
             }
             
-            previousLayer = _hiddenLayers[i];
+            nextLayer = _hiddenLayers[i];
         }
         
-        var currentInputs = inputs;
+        var previousLayerOutputs = inputs;
 
         foreach (var layer in _hiddenLayers)
         {
@@ -59,22 +59,22 @@ public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLay
             {
                 neuron.Bias += _learningRate * neuron.Delta!.Value;
                 
-                for (var j = 0; j < currentInputs.Length; j++)
+                for (var j = 0; j < previousLayerOutputs.Length; j++)
                 {
-                    neuron.Weights[j] += _learningRate * neuron.Delta!.Value * currentInputs[j];
+                    neuron.Weights[j] += _learningRate * neuron.Delta!.Value * previousLayerOutputs[j];
                 }
             }
             
-            currentInputs = layer.Select(n => n.Output!.Value).ToArray();
+            previousLayerOutputs = layer.Select(n => n.Output!.Value).ToArray();
         }
 
         foreach (var neuron in _outputLayer)
         {
             neuron.Bias += _learningRate * neuron.Delta!.Value;
             
-            for (var j = 0; j < currentInputs.Length; j++)
+            for (var j = 0; j < previousLayerOutputs.Length; j++)
             {
-                neuron.Weights[j] += _learningRate * neuron.Delta!.Value * currentInputs[j];
+                neuron.Weights[j] += _learningRate * neuron.Delta!.Value * previousLayerOutputs[j];
             }
         }
 
