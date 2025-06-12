@@ -2,38 +2,27 @@
 
 public class Neuron(double[] weights, double bias)
 {
-    private double? _scaledError;
-    private double[] _weights = weights;
-    private double _bias = bias;
-    private double? _output;
+    public double[] Weights { get; } = weights;
+    public double Bias { set; get; } = bias;
+    public double? Output { get; private set; }
+    public double? Delta;
 
     public double ActivateAndGetOutput(double[] inputs)
     {
-        Activate(inputs);
-        
-        return _output!.Value;
-    }
-
-    public void SetScaledError(double error)
-    {
-        if (_output == null)
-        {
-            throw new InvalidOperationException("Neuron has not been activated");
-        }
-        
-        _scaledError = error * Derivative((double)_output);
-    }
-    
-    private void Activate(double[] inputs)
-    {
-        if (inputs.Length != _weights.Length)
+        if (inputs.Length != Weights.Length)
         {
             throw new ArgumentException("Neuron must have the same number of inputs and weight");
         }
 
-        var weightedInputs = inputs.Select((input, index) => input * _weights[index]).Sum() + _bias;
+        var weightedInputs = inputs.Select((input, index) => input * Weights[index]).Sum() + Bias;
+        Output = Sigmoid(weightedInputs);
+        
+        return Output!.Value;
+    }
 
-        _output = Sigmoid(weightedInputs);
+    public void SetDelta(double error)
+    {
+        Delta = error * Derivative(Output!.Value);
     }
     
     private static double Sigmoid(double x)

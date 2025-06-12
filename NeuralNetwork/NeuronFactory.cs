@@ -4,25 +4,25 @@ public static class NeuronFactory
 {
     private static readonly Random Random = new();
     
-    public static Neuron CreateNeuron(int weights, double min, double max)
+    public static Neuron CreateNeuron(int weights)
     {
-        return new Neuron(RandomWeights(weights, min, max), RandomWeight(min, max));
+        return new Neuron(RandomWeights(weights), RandomWeight());
     }
     
-    private static double[] RandomWeights(int length, double min, double max)
+    private static double[] RandomWeights(int length)
     {
         var weights = new double[length];
 
         for (var i = 0; i < length; i++)
         {
-            weights[i] = RandomWeight(min, max);
+            weights[i] = RandomWeight();
         }
 
         return weights;
     }
 
-    private static double RandomWeight(double min, double max)
+    private static double RandomWeight()
     {
-        return Random.NextDouble() * (max - min) + min;
+        return Random.NextDouble() * 2 - 1;
     } 
 }
