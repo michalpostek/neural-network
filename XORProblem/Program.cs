@@ -1,5 +1,8 @@
-﻿var random = new Random();
-var neuralNetwork = new NeuralNetwork.NeuralNetwork(2, 1, 2, 1, 0.3);
+﻿const double learningRate = 0.3;
+const int epochs = 4000;
+
+var random = new Random();
+var neuralNetwork = new NeuralNetwork.NeuralNetwork(2, 1, 2, 1, learningRate);
 
 var trainingData = new List<(double[] input, double[] expected)>
 {
@@ -8,8 +11,6 @@ var trainingData = new List<(double[] input, double[] expected)>
     ([1, 0], [1]),
     ([1, 1], [0])
 };
-
-const int epochs = 4000;
 
 for (var i = 0; i < epochs; i++)
 {

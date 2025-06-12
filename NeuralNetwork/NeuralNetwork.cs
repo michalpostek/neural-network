@@ -2,27 +2,20 @@
 
 public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLayerSize, int outputsCount, double learningRate)
 {
-    private readonly Neuron[][] _hiddenLayers = InitHiddenLayers(inputsCount, hiddenLayersCount, hiddenLayerSize);
-    private readonly Neuron[] _outputLayer = InitOutputLayer(hiddenLayerSize, outputsCount);
+    private readonly Neuron[][] _hiddenLayers = NeuronFactory.InitHiddenLayers(inputsCount, hiddenLayersCount, hiddenLayerSize);
+    private readonly Neuron[] _outputLayer = NeuronFactory.InitOutputLayer(hiddenLayerSize, outputsCount);
     private readonly double _learningRate = learningRate;
 
     public double[] GetCurrentOutputs(double[] inputs)
     {
-        var previousLayerOutputs = inputs.ToList();
-
-        for (var i = 0; i < _hiddenLayers.Length; i++)
+        var previousLayerOutputs = inputs.ToArray();
+        
+        foreach (var hiddenLayer in _hiddenLayers)
         {
-            var hiddenLayerOutputs = new double[_hiddenLayers[i].Length];
-
-            for (var j = 0; j < _hiddenLayers[i].Length; j++)
-            {
-                hiddenLayerOutputs[j] = _hiddenLayers[i][j].ActivateAndGetOutput(previousLayerOutputs.ToArray());
-            }
-
-            previousLayerOutputs = hiddenLayerOutputs.ToList();
+            previousLayerOutputs = hiddenLayer.Select(n => n.ActivateAndGetOutput(previousLayerOutputs)).ToArray();
         }
 
-        return _outputLayer.Select(x => x.ActivateAndGetOutput(previousLayerOutputs.ToArray())).ToArray();
+        return _outputLayer.Select(x => x.ActivateAndGetOutput(previousLayerOutputs)).ToArray();
     }
 
     public double Train(double[] inputs, double[] expectedOutputs)
@@ -30,6 +23,7 @@ public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLay
         var outputs = GetCurrentOutputs(inputs);
         var squaredErrors = outputs.Select((output, index) => Math.Pow(expectedOutputs[index] - output, 2)).Sum();
 
+        // set deltas
         for (var i = 0; i < _outputLayer.Length; i++)
         {
             var error = expectedOutputs[i] - _outputLayer[i].Output!.Value;
@@ -51,6 +45,7 @@ public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLay
             nextLayer = _hiddenLayers[i];
         }
         
+        // adjust weights
         var previousLayerOutputs = inputs;
 
         foreach (var layer in _hiddenLayers)
@@ -79,37 +74,5 @@ public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLay
         }
 
         return squaredErrors;
-    }
-
-    private static Neuron[] InitOutputLayer(int hiddenLayerSize, int outputsCount)
-    {
-        var layer = new Neuron[outputsCount];
-
-        for (var i = 0; i < outputsCount; i++)
-        {
-            layer[i] = NeuronFactory.CreateNeuron(hiddenLayerSize);
-        }
-        
-        return layer;
-    }
-
-    private static Neuron[][] InitHiddenLayers(int inputsCount, int hiddenLayersCount, int hiddenLayerSize)
-    {
-        var hiddenLayers = new Neuron[hiddenLayersCount][];
-
-        for (var i = 0; i < hiddenLayersCount; i++)
-        {
-            var layer = new Neuron[hiddenLayerSize];
-
-            for (var j = 0; j < hiddenLayerSize; j++)
-            {
-                var inputs = i == 0 ? inputsCount : hiddenLayerSize;
-                layer[j] = NeuronFactory.CreateNeuron(inputs);
-            }
-            
-            hiddenLayers[i] = layer;
-        }
-        
-        return hiddenLayers;
     }
 }
