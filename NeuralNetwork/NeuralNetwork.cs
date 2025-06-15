@@ -21,7 +21,7 @@ public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLay
     public double Train(double[] inputs, double[] expectedOutputs)
     {
         var outputs = GetCurrentOutputs(inputs);
-        var squaredErrors = outputs.Select((output, index) => Math.Pow(expectedOutputs[index] - output, 2)).Sum();
+        var totalError = outputs.Select((output, index) => Math.Abs(expectedOutputs[index] - output)).Sum();
 
         // set deltas
         for (var i = 0; i < _outputLayer.Length; i++)
@@ -73,6 +73,6 @@ public class NeuralNetwork(int inputsCount, int hiddenLayersCount, int hiddenLay
             }
         }
 
-        return squaredErrors;
+        return totalError;
     }
 }
